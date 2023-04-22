@@ -14,7 +14,8 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         useMaterial3: true,
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.pink, backgroundColor: Colors.white),
       ),
       home: const MyHomePage(),
     );
@@ -29,7 +30,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String result = "";
+  String? result;
+  StompServices socket = StompServices();
+  bool connected = true;
+
+  @override
+  void initState() {
+    super.initState();
+    socket.stompClient.activate();
+    connected = true;
+  }
+
+  @override
+  void dispose() {
+    if (socket.stompClient.connected) {
+      socket.stompClient.deactivate();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,34 +60,57 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              onPressed: () async {
+              onPressed: () {
                 try {
-                  StompServices.connect();
+                  socket.test("message", "queue");
                 } catch (e) {
                   setState(() {
                     result = e.toString();
                   });
                 }
               },
-              child: const Text("Teste"),
+              child: const Text("Enviar dado"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                try {
+                  socket.subscribeToQueue("queue");
+                } catch (e) {
+                  setState(() {
+                    result = e.toString();
+                  });
+                }
+              },
+              child: const Text("Receber dados"),
             ),
             const SizedBox(
               height: 24,
             ),
-            const Text(
-              "Última mensagem:",
+            Text(
+              result != null ? "Último erro:" : "",
               textAlign: TextAlign.center,
             ),
             Padding(
               padding:
                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 30),
               child: SelectableText(
-                result,
+                result ?? "",
                 textAlign: TextAlign.justify,
               ),
             )
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          connected
+              ? socket.stompClient.deactivate()
+              : socket.stompClient.activate();
+          setState(() {
+            connected = !connected;
+          });
+        },
+        child: connected ? Icon(Icons.power_off) : Icon(Icons.power),
       ),
     );
   }
