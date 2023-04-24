@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:aws_mq_app/credentials.dart';
+import 'package:flutter/foundation.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
@@ -30,12 +32,18 @@ class StompServices {
     ),
   );
 
-  void subscribeToQueue(String queue) {
-    print("Subscribing");
+  void subscribeToTopic(String topic, StreamController theStream) {
+    if (kDebugMode) {
+      print("Subscribing to $topic");
+    }
     stompClient.subscribe(
-      destination: '/queue/$queue',
+      destination: '/topic/$topic',
       callback: (message) {
-        print(message.body);
+        String decodedMessage = utf8.decoder.convert(message.binaryBody!);
+        if (kDebugMode) {
+          print("Received Message:\n$decodedMessage");
+        }
+        theStream.add(decodedMessage);
       },
       headers: {
         'login': userAppCredential,
@@ -44,32 +52,37 @@ class StompServices {
     );
   }
 
-  void unsubscribeFromQueue(String queue) {
-    print("Unsubscribing");
-    // TODO: implement
-  }
-
-  void test(String message, String queue) {
-    print("Sending");
+  void sendMessage(String message, String queue) {
+    if (kDebugMode) {
+      print("Sending");
+    }
     stompClient.send(
-      destination: '/queue/$queue',
-      body: json.encode({"message": message}),
+      destination: '/topic/$queue',
+      body: message,
     );
   }
 
   static void onConnectCallback(StompFrame connectFrame) {
-    print('Connected');
+    if (kDebugMode) {
+      print('Connected');
+    }
   }
 
   static void onDisonnectCallback(StompFrame connectFrame) {
-    print('Disconnected');
+    if (kDebugMode) {
+      print('Disconnected');
+    }
   }
 
   static void onErrorCallback(dynamic error) {
-    print('Error occurred: $error');
+    if (kDebugMode) {
+      print('Error occurred: $error');
+    }
   }
 
-  static void onDebugCallback(dynamic error) {
-    print('STOMP debug: \n$error');
+  static void onDebugCallback(dynamic debugMessage) {
+    if (kDebugMode) {
+      print('STOMP debug: \n$debugMessage');
+    }
   }
 }
