@@ -43,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool connected = false;
   bool listening = false;
-  String topic = "mensagem";
+  String topic = "messageInput";
 
   @override
   void initState() {
@@ -83,13 +83,13 @@ class _MyHomePageState extends State<MyHomePage> {
               style: selectorStyle,
               value: topic,
               items: const [
-                DropdownMenuItem(value: "soma", child: Text("Soma")),
-                DropdownMenuItem(value: "mensagem", child: Text("Mensagem")),
-                DropdownMenuItem(value: "arquivo", child: Text("Arquivo")),
+                DropdownMenuItem(value: "functionInput", child: Text("Função")),
+                DropdownMenuItem(value: "messageInput", child: Text("Mensagem")),
+                DropdownMenuItem(value: "fileInput", child: Text("Arquivo")),
               ],
               onChanged: (value) {
                 setState(() {
-                  topic = value ?? "mensagem";
+                  topic = value ?? "messageInput";
                 });
               },
             ),
@@ -216,9 +216,9 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (connected && listening == false) {
-            socket.subscribeToTopic("soma", _somaStream);
-            socket.subscribeToTopic("mensagem", _mensagemStream);
-            socket.subscribeToTopic("arquivo", _arquivoStream);
+            socket.subscribeToTopic("functionOuput", _somaStream);
+            socket.subscribeToTopic("messageOutput", _mensagemStream);
+            socket.subscribeToTopic("fileOutput", _arquivoStream);
             setState(() {
               listening = true;
             });

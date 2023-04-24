@@ -25,10 +25,6 @@ class StompServices {
         'login': userAppCredential,
         'passcode': passcodeAppCredential
       },
-      webSocketConnectHeaders: {
-        'login': userAppCredential,
-        'passcode': passcodeAppCredential
-      },
     ),
   );
 
@@ -41,13 +37,9 @@ class StompServices {
       callback: (message) {
         String decodedMessage = utf8.decoder.convert(message.binaryBody!);
         if (kDebugMode) {
-          print("Received Message:\n$decodedMessage");
+          print("Received Message in topic $topic:\n$decodedMessage");
         }
         theStream.add(decodedMessage);
-      },
-      headers: {
-        'login': userAppCredential,
-        'passcode': passcodeAppCredential,
       },
     );
   }
@@ -76,7 +68,7 @@ class StompServices {
 
   static void onErrorCallback(dynamic error) {
     if (kDebugMode) {
-      print('Error occurred: $error');
+      print('Error occurred: ${error.body ?? ""}');
     }
   }
 
