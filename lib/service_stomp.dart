@@ -44,12 +44,12 @@ class StompServices {
     );
   }
 
-  void sendMessage(String message, String queue) {
+  void sendMessage(String message, String topic) {
     if (kDebugMode) {
-      print("Sending");
+      print("Sending to $topic");
     }
     stompClient.send(
-      destination: '/topic/$queue',
+      destination: '/topic/$topic',
       body: message,
     );
   }

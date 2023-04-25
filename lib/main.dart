@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: const Text("Amazon MQ app"),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
               value: topic,
               items: const [
                 DropdownMenuItem(value: "functionInput", child: Text("Função")),
-                DropdownMenuItem(value: "messageInput", child: Text("Mensagem")),
+                DropdownMenuItem(
+                    value: "messageInput", child: Text("Mensagem")),
                 DropdownMenuItem(value: "fileInput", child: Text("Arquivo")),
               ],
               onChanged: (value) {
@@ -142,7 +143,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     "Dados recebidos:",
                     style: h2style,
                   ),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Soma: ",
@@ -151,14 +153,17 @@ class _MyHomePageState extends State<MyHomePage> {
                       StreamBuilder(
                         stream: _somaStream.stream,
                         builder: (context, snapshot) {
-                          return Text(snapshot.data != null
-                              ? snapshot.data.toString()
-                              : "", style: resultStyle);
+                          return Text(
+                              snapshot.data != null
+                                  ? snapshot.data.toString()
+                                  : "",
+                              style: resultStyle);
                         },
                       ),
                     ],
                   ),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Mensagem: ",
@@ -167,14 +172,17 @@ class _MyHomePageState extends State<MyHomePage> {
                       StreamBuilder(
                         stream: _mensagemStream.stream,
                         builder: (context, snapshot) {
-                          return Text(snapshot.data != null
-                              ? snapshot.data.toString()
-                              : "", style: resultStyle);
+                          return Text(
+                              snapshot.data != null
+                                  ? snapshot.data.toString()
+                                  : "",
+                              style: resultStyle);
                         },
                       ),
                     ],
                   ),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Arquivo: ",
@@ -183,9 +191,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       StreamBuilder(
                         stream: _arquivoStream.stream,
                         builder: (context, snapshot) {
-                          return Text(snapshot.data != null
-                              ? snapshot.data.toString()
-                              : "", style: resultStyle,);
+                          return Text(
+                            snapshot.data != null
+                                ? snapshot.data.toString()
+                                : "",
+                            style: resultStyle,
+                          );
                         },
                       ),
                     ],
@@ -194,9 +205,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             //
-            const SizedBox(
-              height: 24,
-            ),
             Text(
               errResult != null ? "Último erro:" : "",
               textAlign: TextAlign.center,
@@ -216,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (connected && listening == false) {
-            socket.subscribeToTopic("functionOuput", _somaStream);
+            socket.subscribeToTopic("functionOutput", _somaStream);
             socket.subscribeToTopic("messageOutput", _mensagemStream);
             socket.subscribeToTopic("fileOutput", _arquivoStream);
             setState(() {
