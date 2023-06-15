@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:svg="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns1="http://sozi.baierouge.fr" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg2" viewBox="0 0 215.12 261.16" version="1.1" inkscape:version="0.91 r13725">
+  <g id="layer1">
+    <path id="path2985" style="fill:#016700" d="m175.67 0c-6.5394 20.499 11.982 25.071 9.8125 37.75-16.216 26.507-40.104 47.898-66.469 64.031-18.471 9.021-35.644 21.425-47.719 38.281-25.35 34.759-32.285 79.042-33.219 121.09h14.562c-0.4394-20.51 0.4848-41.134 4.25-61.344 6.148-32.999 22.256-65.87 51.031-84.656 18.763-10.789 36.136-24.005 50.938-39.844 17.046-5.0199 29.214 18.791 56.375 3.6875-6.0764-13.846-19.284-19.232-28.25-18.719-7.9724-0.15627-12.983 0.50969-17.375 2.6875 6.227-7.5205 12.077-15.444 16.469-24.062 6.5827-8.9656 8.1018-12.147 5.75-22.75-0.85-5.992-6.21-13.989-16.16-16.16zm-80.466 29.938c3.2759 22.586-8.6848 36.054 3.736 50.862 9.1394 10.896 19.139 11.121 33.233 8.8253-7.948-1.455-11.961-3.1782-16.983-6.5991-11.387-7.7575-6.9932-17.292-13.161-31.356 6.1363 9.6415 4.2626 20.322 9.5616 25.85 6.5362 6.8195 13.33 7.3034 22.301 10.261-25.51-21.719-3.09-31.967-38.686-57.843zm-94.188 57c8.0717 34.536-9.8986 49.234 5.75 67.75 12.619 14.931 23.919 13.128 39.063 12.719 0 0-20.23-7.9198-25.983-19.975-5.7015-11.949 6.4971-19.141-8.9342-48.861 15.1 24.598 7.0053 36.925 10.153 46.33 4.3207 12.909 27.295 18.913 27.295 18.913-28.838-17.83 4.476-65.285-47.343-76.872zm141.65 48.032c-42.63 0.46206-43.691 33.261-79.156 53.562 13.966 3.1036 30.015-1.9357 46.326-16.375 8.2409-7.2952 11.302-19.836 37.031-26.478-29.832 10.752-23.337 18.901-39.781 32.103-8.4808 6.8082-22.98 18.146-42.983 15.094 13.177 12.907 30.84 17.142 57.813 3.1562 25.609-13.279 20.435-28.486 46.125-58.531-10.089-1.8172-18.399-2.6069-25.375-2.5312z"/>
+  </g>
+  <metadata>
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <cc:license rdf:resource="http://creativecommons.org/licenses/publicdomain/"/>
+        <dc:publisher>
+          <cc:Agent rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title>Seeding</dc:title>
+        <dc:date>2010-11-18T18:09:08</dc:date>
+        <dc:description>Green plant seedling.</dc:description>
+        <dc:source>https://openclipart.org/detail/96487/seeding-by-kuba</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>kuba</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>floral</rdf:li>
+            <rdf:li>green</rdf:li>
+            <rdf:li>plant</rdf:li>
+            <rdf:li>seed</rdf:li>
+            <rdf:li>seeding</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>
