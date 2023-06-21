@@ -1,6 +1,6 @@
+import 'package:aws_mq_app/home/home.view.dart';
+import 'package:aws_mq_app/relatorio/request/relatorio_request.view.dart';
 import 'package:flutter/material.dart';
-
-import 'home/home.view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,9 +16,20 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.lightBlue, backgroundColor: Colors.white),
+          primarySwatch: Colors.lightBlue,
+          backgroundColor: Colors.white,
+          brightness: Brightness.light,
+        ),
       ),
-      home: const MyHomePage(),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.lightBlue,
+          brightness: Brightness.dark,
+        ),
+      ),
+      home: const HomePage(),
+      routes: {"/relatorio/request": (context) => const RelatorioRequestPage()},
     );
   }
 }

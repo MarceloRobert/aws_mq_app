@@ -6,14 +6,14 @@
 // import '../app.constant.dart';
 // import '../service_stomp.dart';
 
-// class MyHomePage extends StatefulWidget {
-//   const MyHomePage({super.key});
+// class HomePage extends StatefulWidget {
+//   const HomePage({super.key});
 
 //   @override
-//   State<MyHomePage> createState() => _MyHomePageState();
+//   State<HomePage> createState() => _HomePageState();
 // }
 
-// class _MyHomePageState extends State<MyHomePage> {
+// class _HomePageState extends State<HomePage> {
 //   String? errResult;
 //   StompServices socket = StompServices();
 //   final StreamController _somaStream = StreamController();

@@ -7,14 +7,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../app.constant.dart';
 import '../service_stomp.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
   String? errResult;
   StompServices socket = StompServices();
   final StreamController _somaStream = StreamController();
@@ -43,23 +43,28 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  static const double sectionSpacing = 64;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Hidroponia"),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             //
             // SVG planta
             //
+            const SizedBox(
+              height: sectionSpacing,
+            ), // TODO: não deveria ser fixo
             SvgPicture.asset('lib/assets/seeding.svg',
                 height: 128, fit: BoxFit.fitHeight),
+            const SizedBox(height: sectionSpacing),
             //
             // Dados que foram recebidos
             //
@@ -81,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 TableRow(
                   children: [
-                    ...receivedList(
+                    ...dataReceivedWidgets(
                       context,
                       titulo: "pH 💧",
                       streamAtual: "6.8",
@@ -91,21 +96,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 TableRow(
                   children: [
-                    ...receivedList(context,
-                        titulo: "Temp 🌡",
-                        streamAtual: "19",
-                        streamObjetivo: "20"),
+                    ...dataReceivedWidgets(
+                      context,
+                      titulo: "Temp 🌡",
+                      streamAtual: "19",
+                      streamObjetivo: "20",
+                    ),
                   ],
                 ),
                 TableRow(
                   children: [
-                    ...receivedList(context,
-                        titulo: "Lumin 💡",
-                        streamAtual: "600",
-                        streamObjetivo: "600"),
+                    ...dataReceivedWidgets(
+                      context,
+                      titulo: "Lumin 💡",
+                      streamAtual: "600",
+                      streamObjetivo: "600",
+                    ),
                   ],
                 ),
               ],
+            ),
+            const SizedBox(
+              height: sectionSpacing,
             ),
             //
             // Mudar Objetivos
@@ -131,7 +143,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/relatorio/request');
+                    },
                     style: ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(
                           Theme.of(context).colorScheme.primary),
@@ -139,26 +153,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Text(
                       "Solicitar Relatório",
                       style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary),
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                 ),
-                //
-                // Tratamento de erros
-                //
-                // Text(
-                //   errResult != null ? "Último erro:" : "",
-                //   textAlign: TextAlign.center,
-                //   style: h2style,
-                // ),
-                // Padding(
-                //   padding:
-                //       const EdgeInsets.symmetric(vertical: 8.0, horizontal: 30),
-                //   child: SelectableText(
-                //     errResult ?? "",
-                //     textAlign: TextAlign.justify,
-                //   ),
-                // )
               ],
             ),
           ],
@@ -168,7 +167,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-List<Widget> receivedList(
+// TODO: usar as streams
+List<Widget> dataReceivedWidgets(
   BuildContext context, {
   required String titulo,
   required String streamAtual,
@@ -186,7 +186,7 @@ List<Widget> receivedList(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: Theme.of(context).colorScheme.secondary.withAlpha(128),
+        color: Theme.of(context).colorScheme.secondary,
       ),
       // TODO: trocar para stream
       child: Text(
@@ -201,8 +201,7 @@ List<Widget> receivedList(
     // TODO: trocar para stream
     Text(
       streamObjetivo,
-      style: TextStyle(
-        color: Theme.of(context).colorScheme.onSecondary,
+      style: const TextStyle(
         fontSize: textSize,
       ),
       textAlign: TextAlign.center,
