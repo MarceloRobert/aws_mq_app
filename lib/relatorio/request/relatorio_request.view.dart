@@ -21,7 +21,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
   String fieldFinalTemp = "";
 
   static const double checkPadding = 32;
-  static const double allPadding = 24;
+  static const double inbetweenPadding = 24;
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +84,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: allPadding),
+              const SizedBox(height: inbetweenPadding),
               //
               // Métricas
               //
@@ -112,7 +112,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: allPadding),
+              const SizedBox(height: inbetweenPadding),
               //
               // Escala
               //
@@ -136,7 +136,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                   dropdownEscala = valor ?? "Horas";
                 },
               ),
-              const SizedBox(height: allPadding),
+              const SizedBox(height: inbetweenPadding),
               //
               // Data/Hora inicial e final
               // TODO: mudar para picker
@@ -145,10 +145,12 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                   fieldInicialTemp = value;
                 },
                 decoration: const InputDecoration(
+                  hintText: "Inicial",
                   labelText: "Inicial",
                 ),
+                keyboardType: TextInputType.datetime,
               ),
-              const SizedBox(height: allPadding),
+              const SizedBox(height: inbetweenPadding),
               TextFormField(
                 onChanged: (value) {
                   fieldFinalTemp = value;
@@ -157,8 +159,9 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                   hintText: "Final",
                   labelText: "Final",
                 ),
+                keyboardType: TextInputType.datetime,
               ),
-              const SizedBox(height: allPadding + 16),
+              const SizedBox(height: inbetweenPadding + 16),
               //
               // Submit
               //

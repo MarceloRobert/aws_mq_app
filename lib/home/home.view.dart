@@ -127,7 +127,9 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/targets');
+                    },
                     style: ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(
                           Theme.of(context).colorScheme.primary),
