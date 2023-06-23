@@ -2,9 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-import '../app.constant.dart';
 import '../service_stomp.dart';
 
 class HomePage extends StatefulWidget {
@@ -43,28 +40,40 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  static const double sectionSpacing = 64;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Hidroponia"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            icon: const Icon(Icons.exit_to_app_rounded, size: 32),
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            //
-            // SVG planta
-            //
-            const SizedBox(
-              height: sectionSpacing,
-            ), // TODO: não deveria ser fixo
-            SvgPicture.asset('lib/assets/seeding.svg',
-                height: 128, fit: BoxFit.fitHeight),
-            const SizedBox(height: sectionSpacing),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 48,
+          runSpacing: 48,
+          children: [
+            Hero(
+              tag: 'mainLogo',
+              child: Padding(
+                padding: const EdgeInsets.only(top: 24.0),
+                child: SizedBox.square(
+                  dimension: 200,
+                  child: Image.asset(
+                    'lib/assets/logoCutTransparent.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
             //
             // Dados que foram recebidos
             //
@@ -115,9 +124,6 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ],
-            ),
-            const SizedBox(
-              height: sectionSpacing,
             ),
             //
             // Mudar Objetivos
