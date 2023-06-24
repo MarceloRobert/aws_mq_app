@@ -109,9 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         onPressed: () {
-                          print(_formkey.currentState!.validate());
-                          print(userName);
-                          print(userPassword);
+                          _formkey.currentState!.validate(); // retorna true ou false se estiver validado ou não
                         },
                         child: const Text("Login"),
                       )

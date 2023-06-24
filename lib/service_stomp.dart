@@ -6,9 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class StompServices {
   StompServices();
+
+  static Completer isConnected = Completer();
 
   StompClient stompClient = StompClient(
     config: StompConfig(
@@ -27,6 +30,29 @@ class StompServices {
       },
     ),
   );
+
+  Future makeConnection() async {
+    if (isConnected.isCompleted == true) {
+      isConnected = Completer();
+    }
+    stompClient.activate();
+    return isConnected.future;
+  }
+
+  revokeConnection() async {
+    if (isConnected.isCompleted == true) {
+      isConnected = Completer();
+    }
+    stompClient.deactivate();
+  }
+
+  Future connectDebug() {
+    if (isConnected.isCompleted == true) {
+      isConnected = Completer();
+    }
+    isConnected.complete();
+    return isConnected.future;
+  }
 
   void subscribeToTopic(String topic, StreamController theStream) {
     if (kDebugMode) {
@@ -58,6 +84,9 @@ class StompServices {
     if (kDebugMode) {
       print('Connected');
     }
+    if (connectFrame.body == null) {
+      isConnected.complete("connected");
+    }
   }
 
   static void onDisonnectCallback(StompFrame connectFrame) {
@@ -67,8 +96,15 @@ class StompServices {
   }
 
   static void onErrorCallback(dynamic error) {
-    if (kDebugMode) {
-      print('Error occurred: ${error.body ?? ""}');
+    if (error is WebSocketChannelException) {
+      if (kDebugMode) {
+        print('Error occurred: ${error.message}');
+      }
+      if (isConnected.isCompleted == false) {
+        isConnected.completeError(error.message!.split(":")[1]);
+      }
+    } else {
+      isConnected.completeError("Erro desconhecido");
     }
   }
 

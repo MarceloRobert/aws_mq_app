@@ -1,4 +1,5 @@
 import 'package:aws_mq_app/home/home.view.dart';
+import 'package:aws_mq_app/landing/landing.view.dart';
 import 'package:aws_mq_app/login/login.view.dart';
 import 'package:aws_mq_app/relatorio/request/relatorio_request.view.dart';
 import 'package:aws_mq_app/targets/targets.view.dart';
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const LoginPage(),
+      home: const LandingPage(),
       routes: {
         "/login": (context) => const LoginPage(),
         "/home": (context) => const HomePage(),
