@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:aws_mq_app/relatorio/reply/relatorio_reply.view.dart';
-import 'package:aws_mq_app/shared/app.shared.dart';
-import 'package:aws_mq_app/shared/errors.dart';
+import 'package:hidroponia/relatorio/reply/relatorio_reply.view.dart';
+import 'package:hidroponia/shared/app.shared.dart';
+import 'package:hidroponia/shared/errors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -24,6 +24,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
   String dropdownEscala = "Horas";
   String fieldInicialTemp = "";
   String fieldFinalTemp = "";
+  String dataReferenciaTemp = "";
 
   static const double checkPadding = 32;
   static const double inbetweenPadding = 24;
@@ -32,6 +33,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
     // "vars": [], // "temperatura", "ph", "luminosidade"
     // "data_inicial": "", // 14/06/23, null se for horas
     // "data_final": "", // 14/06/23, null se for horas
+    // "data_ref": "", //14/06/23, null se for dias
     // "hora_inicial": null, // null se for dias
     // "hora_final": null, // null se for dias
     // "escala": "", // "dias"/"horas"
@@ -96,7 +98,7 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
               }
             }
             if (replyData["requester_id"] != null &&
-                replyData["requester_id"] == sharedUser["uuid"]) {
+                replyData["requester_id"] == sharedUser["cli_id"]) {
               if (kDebugMode) {
                 print("Relatorio snapshot data:");
                 print(replyData);
@@ -225,12 +227,32 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                       ],
                       onChanged: (String? valor) {
                         dropdownEscala = valor ?? "Horas";
+                        setState(() {});
                       },
                     ),
                     const SizedBox(height: inbetweenPadding),
                     //
                     // Data/Hora inicial e final
                     // TODO: mudar para picker ou combinar formato
+                    if (dropdownEscala == "Horas")
+                      TextFormField(
+                        onChanged: (value) {
+                          dataReferenciaTemp = value;
+                        },
+                        decoration: const InputDecoration(
+                          hintText: "Data de referência",
+                          labelText: "Data de referência",
+                        ),
+                        keyboardType: TextInputType.datetime,
+                        validator: (value) {
+                          if (value == null || value == "") {
+                            return "Insira um valor";
+                          }
+                          return null;
+                        },
+                      ),
+                    if (dropdownEscala == "Horas")
+                      const SizedBox(height: inbetweenPadding),
                     TextFormField(
                       onChanged: (value) {
                         fieldInicialTemp = value;
@@ -290,6 +312,8 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                                   }
                                   if (dropdownEscala == "Horas") {
                                     relatorioRequestData["escala"] = "horas";
+                                    relatorioRequestData["data_ref"] =
+                                        dataReferenciaTemp;
                                     relatorioRequestData["hora_inicial"] =
                                         fieldInicialTemp;
                                     relatorioRequestData["hora_final"] =
@@ -302,20 +326,20 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                                         fieldFinalTemp;
                                   }
                                   relatorioRequestData["requester_id"] =
-                                      sharedUser["uuid"];
+                                      sharedUser["cli_id"];
                                   if (kDebugMode) {
                                     print(relatorioRequestData.toString());
                                   }
-                                  sharedSocket.sendMessage(
-                                      jsonEncode(relatorioRequestData),
-                                      "relatorio_request");
-                                  waitingReply = true;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          "Solicitando relatório. Permaneça na página"),
-                                    ),
-                                  );
+                                  // sharedSocket.sendMessage(
+                                  //     jsonEncode(relatorioRequestData),
+                                  //     "relatorio_request");
+                                  // waitingReply = true;
+                                  // ScaffoldMessenger.of(context).showSnackBar(
+                                  //   const SnackBar(
+                                  //     content: Text(
+                                  //         "Solicitando relatório. Permaneça na página"),
+                                  //   ),
+                                  // );
                                   setState(() {});
                                 }
                               }

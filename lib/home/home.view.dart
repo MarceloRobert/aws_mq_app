@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:aws_mq_app/shared/app.shared.dart';
-import 'package:aws_mq_app/shared/errors.dart';
+import 'package:hidroponia/shared/app.shared.dart';
+import 'package:hidroponia/shared/errors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -20,8 +20,6 @@ class _HomePageState extends State<HomePage> {
   int? lastHashStream;
   late Function varStreamUnsub;
   Map<String, dynamic> valoresStream = {};
-  List<String> phsRecebidos = [];
-  List<String> tempsRecebidos = [];
 
   final StreamController _alertaStream = StreamController();
   late Function alertaStreamUnsub;
@@ -147,14 +145,6 @@ class _HomePageState extends State<HomePage> {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           valoresStream = jsonDecode(snapshot.data);
-                          phsRecebidos =
-                              valoresStream["ph"].toString().split(" ");
-                          tempsRecebidos = valoresStream["temperatura"]
-                              .toString()
-                              .split(" ");
-                        } else {
-                          phsRecebidos = ["", ""];
-                          tempsRecebidos = ["", "", ""];
                         }
 
                         return Table(
@@ -178,17 +168,19 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 ...dataReceivedWidgets(context,
                                     titulo: "pH 💧",
-                                    valorAtual: phsRecebidos[0],
-                                    valorObjetivo: phsRecebidos[1]),
+                                    valorAtual: valoresStream["ph_atual"] ?? "",
+                                    valorObjetivo:
+                                        valoresStream["ph_target"] ?? ""),
                               ],
                             ),
                             TableRow(
                               children: [
                                 ...dataReceivedWidgets(context,
                                     titulo: "Temp 🌡",
-                                    valorAtual: tempsRecebidos[0],
+                                    valorAtual:
+                                        valoresStream["temp_atual"] ?? "",
                                     valorObjetivo:
-                                        "${tempsRecebidos[1]} ~ ${tempsRecebidos[1]}"),
+                                        "${valoresStream["temp_min"] ?? ""} ~ ${valoresStream["temp_max"] ?? ""}"),
                               ],
                             ),
                             TableRow(
@@ -196,10 +188,7 @@ class _HomePageState extends State<HomePage> {
                                 ...dataReceivedWidgets(context,
                                     titulo: "Lumin 💡",
                                     valorAtual:
-                                        valoresStream["luminosidade"] != null
-                                            ? valoresStream["luminosidade"]
-                                                .toString()
-                                            : "",
+                                        valoresStream["lum_atual"] ?? "",
                                     valorObjetivo: "-"),
                               ],
                             ),

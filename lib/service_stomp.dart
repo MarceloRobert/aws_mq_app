@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:aws_mq_app/credentials.dart';
+import 'package:hidroponia/credentials.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
@@ -77,7 +77,8 @@ class StompServices {
             theStream.add(decodedMessage);
           }
         } catch (e) {
-          theStream.add(decodedMessage); // no caso do alerta, virá apenas uma string
+          theStream
+              .add(decodedMessage); // no caso do alerta, virá apenas uma string
         }
       },
     );

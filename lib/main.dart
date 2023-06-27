@@ -1,10 +1,10 @@
-import 'package:aws_mq_app/home/home.view.dart';
-import 'package:aws_mq_app/landing/landing.view.dart';
-import 'package:aws_mq_app/login/login.view.dart';
-import 'package:aws_mq_app/relatorio/reply/relatorio_reply.view.dart';
-import 'package:aws_mq_app/relatorio/request/relatorio_request.view.dart';
-import 'package:aws_mq_app/shared/app.shared.dart';
-import 'package:aws_mq_app/targets/targets.view.dart';
+import 'package:hidroponia/home/home.view.dart';
+import 'package:hidroponia/landing/landing.view.dart';
+import 'package:hidroponia/login/login.view.dart';
+import 'package:hidroponia/relatorio/reply/relatorio_reply.view.dart';
+import 'package:hidroponia/relatorio/request/relatorio_request.view.dart';
+import 'package:hidroponia/shared/app.shared.dart';
+import 'package:hidroponia/targets/targets.view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -40,7 +40,9 @@ class MyApp extends StatelessWidget {
         "/login": (context) => const LoginPage(),
         "/home": (context) => const HomePage(),
         "/relatorio/request": (context) => const RelatorioRequestPage(),
-        "/relatorio/reply":(context) => const RelatorioReplyPage(dadosView: {},),
+        "/relatorio/reply": (context) => const RelatorioReplyPage(
+              dadosView: {},
+            ),
         "/targets": (context) => const TargetsPage(),
       },
     );

@@ -1,4 +1,6 @@
-import 'package:aws_mq_app/shared/app.shared.dart';
+import 'dart:convert';
+
+import 'package:hidroponia/shared/app.shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -132,8 +134,14 @@ class _TargetsPageState extends State<TargetsPage> {
                         print("Enviando phTarget:");
                         print(phTarget);
                       }
-                      sharedSocket.sendMessage(phTarget.toString(),
-                          "${sharedUser["equipamento"]}.ph_set");
+                      sharedSocket.sendMessage(
+                        jsonEncode({
+                          "cli_id": sharedUser["cli_id"],
+                          "amb_id": sharedUser["amb_id"],
+                          "ph_target": phTarget.toString(),
+                        }),
+                        "${sharedUser["equipamento"]}.ph_set",
+                      );
                       sharedSMS.currentState?.showSnackBar(
                         const SnackBar(
                           content: Text("Enviando pH objetivo"),
@@ -149,8 +157,14 @@ class _TargetsPageState extends State<TargetsPage> {
                         print(tempMaxima);
                       }
                       sharedSocket.sendMessage(
-                          "${tempMinima.toString()} ${tempMaxima.toString()}",
-                          "${sharedUser["equipamento"]}.temp_set");
+                        jsonEncode({
+                          "cli_id": sharedUser["cli_id"],
+                          "amb_id": sharedUser["amb_id"],
+                          "temp_min": tempMinima.toString(),
+                          "temp_max": tempMaxima.toString(),
+                        }),
+                        "${sharedUser["equipamento"]}.temp_set",
+                      );
                       sharedSMS.currentState?.showSnackBar(
                         const SnackBar(
                           content: Text("Enviando temperatura objetivo"),

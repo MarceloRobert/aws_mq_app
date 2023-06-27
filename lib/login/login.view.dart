@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:aws_mq_app/shared/app.shared.dart';
-import 'package:aws_mq_app/shared/errors.dart';
+import 'package:hidroponia/shared/app.shared.dart';
+import 'package:hidroponia/shared/errors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -87,15 +87,24 @@ class _LoginPageState extends State<LoginPage> {
               print("Login snapshot data:");
               print(snapshot.data);
             }
-            loginReplyData = jsonDecode(snapshot.data);
-            if (loginReplyData['uuid'] != null &&
-                loginReplyData['equipamento'] != null) {
-              sharedUser = loginReplyData;
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacementNamed(context, '/home');
-              });
+            try {
+              loginReplyData = jsonDecode(snapshot.data);
+              if (loginReplyData['cli_id'] != null &&
+                  loginReplyData['equipamento'] != null &&
+                  loginReplyData['amb_id'] != null) {
+                sharedUser["cli_id"] = loginReplyData["cli_id"];
+                sharedUser["equipamento"] = loginReplyData["equipamento"];
+                sharedUser["amb_id"] = loginReplyData["amb_id"];
+                WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                  Navigator.pushReplacementNamed(context, '/home');
+                });
+              }
+              waitingReply = false;
+            } on Exception catch (e) {
+              if (kDebugMode) {
+                print(e);
+              }
             }
-            waitingReply = false;
           }
 
           // Desenha a tela
@@ -168,25 +177,27 @@ class _LoginPageState extends State<LoginPage> {
                     runSpacing: inbetweenSpacing / 2,
                     children: [
                       // Enviar forms
-                      ElevatedButton(
-                        style: const ButtonStyle(
-                          minimumSize: MaterialStatePropertyAll(
-                            Size(double.infinity, 38),
-                          ),
-                        ),
-                        onPressed: () {
-                          if (waitingReply == false) {
-                            if (_formkey.currentState!.validate()) {
-                              sharedSocket.sendMessage(
-                                  jsonEncode(userCredentials), 'login_request');
-                              waitingReply = true;
-                            }
-                          }
-                        },
-                        child: !waitingReply
-                            ? const Text("Login")
-                            : const CircularProgressIndicator(),
-                      ),
+                      waitingReply == false
+                          ? ElevatedButton(
+                              style: const ButtonStyle(
+                                minimumSize: MaterialStatePropertyAll(
+                                  Size(double.infinity, 38),
+                                ),
+                              ),
+                              onPressed: () {
+                                if (_formkey.currentState!.validate()) {
+                                  sharedSocket.sendMessage(
+                                      jsonEncode(userCredentials),
+                                      'login_request');
+                                  waitingReply = true;
+                                  setState(() {});
+                                }
+                              },
+                              child: !waitingReply
+                                  ? const Text("Login")
+                                  : const CircularProgressIndicator(),
+                            )
+                          : const Center(child: CircularProgressIndicator()),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

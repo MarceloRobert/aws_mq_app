@@ -1,6 +1,6 @@
-import 'package:aws_mq_app/credentials.dart';
-import 'package:aws_mq_app/service_stomp.dart';
-import 'package:aws_mq_app/shared/app.shared.dart';
+import 'package:hidroponia/credentials.dart';
+import 'package:hidroponia/service_stomp.dart';
+import 'package:hidroponia/shared/app.shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
