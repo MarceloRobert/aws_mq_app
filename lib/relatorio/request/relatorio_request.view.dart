@@ -1,4 +1,9 @@
-import 'package:aws_mq_app/relatorio/request/pickers.exp.dart';
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:aws_mq_app/relatorio/reply/relatorio_reply.view.dart';
+import 'package:aws_mq_app/shared/app.shared.dart';
+import 'package:aws_mq_app/shared/errors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -23,168 +28,307 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
   static const double checkPadding = 32;
   static const double inbetweenPadding = 24;
 
+  Map<String, dynamic> relatorioRequestData = {
+    // "vars": [], // "temperatura", "ph", "luminosidade"
+    // "data_inicial": "", // 14/06/23, null se for horas
+    // "data_final": "", // 14/06/23, null se for horas
+    // "hora_inicial": null, // null se for dias
+    // "hora_final": null, // null se for dias
+    // "escala": "", // "dias"/"horas"
+    // "requester_id": ""
+  };
+
+  final StreamController _relatorioReplyStream = StreamController();
+  bool waitingReply = false;
+  late Function relatorioReplyUnsub;
+  Map<String, dynamic> streamError = {};
+
+  Map<String, dynamic> replyData = {};
+
+  @override
+  void initState() {
+    super.initState();
+    relatorioReplyUnsub =
+        sharedSocket.subscribeToTopic("relatorio_reply", _relatorioReplyStream);
+  }
+
+  @override
+  void dispose() {
+    relatorioReplyUnsub();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Solicitar Relatório"),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(48.0),
-        child: Form(
-          key: _formkey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              //
-              // Dados
-              //
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: checkPadding),
+    return StreamBuilder(
+        stream: _relatorioReplyStream.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            if (kDebugMode) {
+              print("Relatorio snapshot error:");
+              print(snapshot.error);
+            }
+            streamError = jsonDecode(snapshot.error as String);
+            if (streamError['err_id'] != null &&
+                streamError['err_desc'] != null) {
+              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                showDialog(
+                  context: context,
+                  builder: (context) => ErrorAlert(
+                    theError: MyErrors.fromJson(streamError),
+                  ),
+                );
+              });
+            }
+            waitingReply = false;
+          }
+
+          if (snapshot.hasData) {
+            try {
+              replyData = jsonDecode(snapshot.data);
+            } catch (e) {
+              // recebe os dados para tirar da stream
+              // ignore: unused_local_variable
+              var trashData = snapshot.data;
+              if (kDebugMode) {
+                print("Erro em Relatório Request:");
+                print(e);
+              }
+            }
+            if (replyData["requester_id"] != null &&
+                replyData["requester_id"] == sharedUser["uuid"]) {
+              if (kDebugMode) {
+                print("Relatorio snapshot data:");
+                print(replyData);
+              }
+              waitingReply = false;
+              replyData.addAll(relatorioRequestData);
+              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          RelatorioReplyPage(dadosView: replyData),
+                    ));
+              });
+            }
+          }
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Solicitar Relatório"),
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(48.0),
+              child: Form(
+                key: _formkey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Dados",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                    //
+                    // Dados
+                    //
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: checkPadding),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Dados",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const Divider(),
+                          MyCheckTile(
+                            texto: "pH",
+                            controlador: checkPh,
+                            onChanged: ((bool? value) {
+                              setState(() {
+                                checkPh = value ?? false;
+                              });
+                            }),
+                          ),
+                          MyCheckTile(
+                            texto: "Temperatura",
+                            controlador: checkTemp,
+                            onChanged: ((bool? value) {
+                              setState(() {
+                                checkTemp = value ?? false;
+                              });
+                            }),
+                          ),
+                          MyCheckTile(
+                            texto: "Luminosidade",
+                            controlador: checkLum,
+                            onChanged: ((bool? value) {
+                              setState(() {
+                                checkLum = value ?? false;
+                              });
+                            }),
+                          ),
+                        ],
                       ),
                     ),
-                    const Divider(),
-                    MyCheckTile(
-                      texto: "pH",
-                      controlador: checkPh,
-                      onChanged: ((bool? value) {
-                        setState(() {
-                          checkPh = value ?? false;
-                        });
-                      }),
+                    const SizedBox(height: inbetweenPadding),
+                    // //
+                    // // Métricas
+                    // //
+                    // Container(
+                    //   padding:
+                    //       const EdgeInsets.symmetric(horizontal: checkPadding),
+                    //   child: Column(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     crossAxisAlignment: CrossAxisAlignment.center,
+                    //     children: [
+                    //       const Text(
+                    //         "Métricas",
+                    //         style: TextStyle(
+                    //             fontWeight: FontWeight.bold, fontSize: 18),
+                    //       ),
+                    //       const Divider(),
+                    //       MyCheckTile(
+                    //         texto: "Variância",
+                    //         controlador: checkVariancia,
+                    //         onChanged: ((bool? value) {
+                    //           setState(() {
+                    //             checkVariancia = value ?? false;
+                    //           });
+                    //         }),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: inbetweenPadding),
+                    // //
+                    // // Escala
+                    // //
+                    DropdownButtonFormField(
+                      decoration: const InputDecoration(
+                        hintText: "Escala",
+                        labelText: "Escala",
+                      ),
+                      value: dropdownEscala,
+                      items: const [
+                        DropdownMenuItem(
+                          value: "Horas",
+                          child: Text("Horas"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Dias",
+                          child: Text("Dias"),
+                        ),
+                      ],
+                      onChanged: (String? valor) {
+                        dropdownEscala = valor ?? "Horas";
+                      },
                     ),
-                    MyCheckTile(
-                      texto: "Temperatura",
-                      controlador: checkTemp,
-                      onChanged: ((bool? value) {
-                        setState(() {
-                          checkTemp = value ?? false;
-                        });
-                      }),
+                    const SizedBox(height: inbetweenPadding),
+                    //
+                    // Data/Hora inicial e final
+                    // TODO: mudar para picker ou combinar formato
+                    TextFormField(
+                      onChanged: (value) {
+                        fieldInicialTemp = value;
+                      },
+                      decoration: const InputDecoration(
+                        hintText: "Inicial",
+                        labelText: "Inicial",
+                      ),
+                      keyboardType: TextInputType.datetime,
+                      validator: (value) {
+                        if (value == null || value == "") {
+                          return "Insira um valor";
+                        }
+                        return null;
+                      },
                     ),
-                    MyCheckTile(
-                      texto: "Luminosidade",
-                      controlador: checkLum,
-                      onChanged: ((bool? value) {
-                        setState(() {
-                          checkLum = value ?? false;
-                        });
-                      }),
+                    const SizedBox(height: inbetweenPadding),
+                    TextFormField(
+                      onChanged: (value) {
+                        fieldFinalTemp = value;
+                      },
+                      decoration: const InputDecoration(
+                        hintText: "Final",
+                        labelText: "Final",
+                      ),
+                      keyboardType: TextInputType.datetime,
+                      validator: (value) {
+                        if (value == null || value == "") {
+                          return "Insira um valor";
+                        }
+                        return null;
+                      },
                     ),
+                    const SizedBox(height: inbetweenPadding + 16),
+                    //
+                    // Submit
+                    //
+                    waitingReply == false
+                        ? ElevatedButton(
+                            onPressed: () {
+                              if (waitingReply == false) {
+                                if (_formkey.currentState!.validate() &&
+                                    (checkPh != false ||
+                                        checkTemp != false ||
+                                        checkLum != false)) {
+                                  relatorioRequestData["vars"] = [];
+                                  if (checkPh) {
+                                    relatorioRequestData["vars"].add("ph");
+                                  }
+                                  if (checkTemp) {
+                                    relatorioRequestData["vars"]
+                                        .add("temperatura");
+                                  }
+                                  if (checkLum) {
+                                    relatorioRequestData["vars"]
+                                        .add("luminosidade");
+                                  }
+                                  if (dropdownEscala == "Horas") {
+                                    relatorioRequestData["escala"] = "horas";
+                                    relatorioRequestData["hora_inicial"] =
+                                        fieldInicialTemp;
+                                    relatorioRequestData["hora_final"] =
+                                        fieldFinalTemp;
+                                  } else {
+                                    relatorioRequestData["escala"] = "dias";
+                                    relatorioRequestData["data_inicial"] =
+                                        fieldInicialTemp;
+                                    relatorioRequestData["data_final"] =
+                                        fieldFinalTemp;
+                                  }
+                                  relatorioRequestData["requester_id"] =
+                                      sharedUser["uuid"];
+                                  if (kDebugMode) {
+                                    print(relatorioRequestData.toString());
+                                  }
+                                  sharedSocket.sendMessage(
+                                      jsonEncode(relatorioRequestData),
+                                      "relatorio_request");
+                                  waitingReply = true;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          "Solicitando relatório. Permaneça na página"),
+                                    ),
+                                  );
+                                  setState(() {});
+                                }
+                              }
+                            },
+                            child: const Text("Enviar"),
+                          )
+                        : const CircularProgressIndicator(),
                   ],
                 ),
               ),
-              const SizedBox(height: inbetweenPadding),
-              //
-              // Métricas
-              //
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: checkPadding),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Métricas",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    const Divider(),
-                    MyCheckTile(
-                      texto: "Variância",
-                      controlador: checkVariancia,
-                      onChanged: ((bool? value) {
-                        setState(() {
-                          checkVariancia = value ?? false;
-                        });
-                      }),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: inbetweenPadding),
-              //
-              // Escala
-              //
-              DropdownButtonFormField(
-                decoration: const InputDecoration(
-                  hintText: "Escala",
-                  labelText: "Escala",
-                ),
-                value: dropdownEscala,
-                items: const [
-                  DropdownMenuItem(
-                    value: "Horas",
-                    child: Text("Horas"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Dias",
-                    child: Text("Dias"),
-                  ),
-                ],
-                onChanged: (String? valor) {
-                  dropdownEscala = valor ?? "Horas";
-                },
-              ),
-              const SizedBox(height: inbetweenPadding),
-              //
-              // Data/Hora inicial e final
-              // TODO: mudar para picker
-              TextFormField(
-                onChanged: (value) {
-                  fieldInicialTemp = value;
-                },
-                decoration: const InputDecoration(
-                  hintText: "Inicial",
-                  labelText: "Inicial",
-                ),
-                keyboardType: TextInputType.datetime,
-              ),
-              const SizedBox(height: inbetweenPadding),
-              TextFormField(
-                onChanged: (value) {
-                  fieldFinalTemp = value;
-                },
-                decoration: const InputDecoration(
-                  hintText: "Final",
-                  labelText: "Final",
-                ),
-                keyboardType: TextInputType.datetime,
-              ),
-              const SizedBox(height: inbetweenPadding + 16),
-              //
-              // Submit
-              //
-              ElevatedButton(
-                  onPressed: () {
-                    _formkey.currentState!.validate();
-                    if (kDebugMode) {
-                      print(checkPh);
-                      print(checkTemp);
-                      print(checkLum);
-                      print(checkVariancia);
-                      print(dropdownEscala);
-                      print(fieldInicialTemp);
-                      print(fieldFinalTemp);
-                    }
-                    // TODO: enviar para o broker
-                  },
-                  child: const Text("Enviar"))
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+          );
+        });
   }
 }
 

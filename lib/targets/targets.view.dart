@@ -1,3 +1,4 @@
+import 'package:aws_mq_app/shared/app.shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -40,15 +41,21 @@ class _TargetsPageState extends State<TargetsPage> {
                 ),
                 validator: (value) {
                   if (value != null) {
-                    phTarget = double.tryParse(value);
-                    if (phTarget == null) {
-                      return "Formato inválido";
-                    }
-                    if (phTarget! < limitephMinimo) {
-                      return "Valor muito pequeno";
-                    }
-                    if (phTarget! > limitephMaximo) {
-                      return "Valor muito grande";
+                    if (value != "") {
+                      phTarget = double.tryParse(value);
+                      if (phTarget == null) {
+                        return "Formato inválido";
+                      }
+                      if (phTarget! < limitephMinimo) {
+                        phTarget = null;
+                        return "Valor muito pequeno";
+                      }
+                      if (phTarget! > limitephMaximo) {
+                        phTarget = null;
+                        return "Valor muito grande";
+                      }
+                    } else {
+                      phTarget = null;
                     }
                   }
                   return null;
@@ -63,15 +70,21 @@ class _TargetsPageState extends State<TargetsPage> {
                 ),
                 validator: (value) {
                   if (value != null) {
-                    tempMinima = int.tryParse(value);
-                    if (tempMinima == null) {
-                      return "Formato inválido";
-                    }
-                    if (tempMaxima != null && tempMinima! > tempMaxima!) {
-                      return "Maior que o máximo";
-                    }
-                    if (tempMinima! < limiteTempMinimo) {
-                      return "Valor muito pequeno";
+                    if (value != "") {
+                      tempMinima = int.tryParse(value);
+                      if (tempMinima == null) {
+                        return "Formato inválido";
+                      }
+                      if (tempMaxima != null && tempMinima! > tempMaxima!) {
+                        tempMinima = null;
+                        return "Maior que o máximo";
+                      }
+                      if (tempMinima! < limiteTempMinimo) {
+                        tempMinima = null;
+                        return "Valor muito pequeno";
+                      }
+                    } else {
+                      tempMinima = null;
                     }
                   }
                   return null;
@@ -86,16 +99,22 @@ class _TargetsPageState extends State<TargetsPage> {
                 ),
                 validator: (value) {
                   if (value != null) {
-                    tempMaxima = int.tryParse(value);
-                    if (tempMaxima == null) {
-                      return "Formato inválido";
-                    }
-                    if (tempMinima != null &&
-                        int.tryParse(value)! < tempMinima!) {
-                      return "Menor que o mínimo";
-                    }
-                    if (tempMaxima! > limiteTempMaximo) {
-                      return "Valor muito alto";
+                    if (value != "") {
+                      tempMaxima = int.tryParse(value);
+                      if (tempMaxima == null) {
+                        return "Formato inválido";
+                      }
+                      if (tempMinima != null &&
+                          int.tryParse(value)! < tempMinima!) {
+                        tempMaxima = null;
+                        return "Menor que o mínimo";
+                      }
+                      if (tempMaxima! > limiteTempMaximo) {
+                        tempMaxima = null;
+                        return "Valor muito alto";
+                      }
+                    } else {
+                      tempMaxima = null;
                     }
                   }
                   return null;
@@ -106,13 +125,44 @@ class _TargetsPageState extends State<TargetsPage> {
               // submit
               ElevatedButton(
                 onPressed: () {
-                  _formkey.currentState!.validate();
-                  if (phTarget != null &&
-                      tempMinima != null &&
-                      tempMaxima != null) {
-                    // TODO: juntar e enviar os dados
-                    if (kDebugMode) {
-                      print("Enviando...");
+                  if (_formkey.currentState!.validate()) {
+                    // enviando ph
+                    if (phTarget != null) {
+                      if (kDebugMode) {
+                        print("Enviando phTarget:");
+                        print(phTarget);
+                      }
+                      sharedSocket.sendMessage(phTarget.toString(),
+                          "${sharedUser["equipamento"]}.ph_set");
+                      sharedSMS.currentState?.showSnackBar(
+                        const SnackBar(
+                          content: Text("Enviando pH objetivo"),
+                        ),
+                      );
+                    }
+
+                    // enviando temperatura
+                    if (tempMinima != null && tempMaxima != null) {
+                      if (kDebugMode) {
+                        print("Enviando tempTarget:");
+                        print(tempMinima);
+                        print(tempMaxima);
+                      }
+                      sharedSocket.sendMessage(
+                          "${tempMinima.toString()} ${tempMaxima.toString()}",
+                          "${sharedUser["equipamento"]}.temp_set");
+                      sharedSMS.currentState?.showSnackBar(
+                        const SnackBar(
+                          content: Text("Enviando temperatura objetivo"),
+                        ),
+                      );
+                    } else if (tempMinima != null || tempMaxima != null) {
+                      sharedSMS.currentState?.showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              "Ambas temperaturas objetivo devem ser definidas!"),
+                        ),
+                      );
                     }
                   }
                 },

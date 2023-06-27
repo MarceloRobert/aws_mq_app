@@ -1,4 +1,5 @@
 import 'package:aws_mq_app/credentials.dart';
+import 'package:aws_mq_app/service_stomp.dart';
 import 'package:aws_mq_app/shared/app.shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   String? newUsername;
   String? newPasscode;
-  String? newEndpoint;
+  String? newUrl;
   Future? socketConnection;
 
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
@@ -89,11 +90,12 @@ class _LandingPageState extends State<LandingPage> {
                           if (newPasscode != null && newPasscode != "") {
                             passcodeAppCredential = newPasscode!;
                           }
-                          if (newEndpoint != null && newEndpoint != "") {
-                            endpointAppCredential = newEndpoint!;
+                          if (newUrl != null && newUrl != "") {
+                            urlAppCredential = newUrl!;
                           }
                           // Assegura que não está conectado antes de tentar nova conexão
                           await sharedSocket.revokeConnection();
+                          sharedSocket = StompServices();
                           setState(() {
                             socketConnection = Future(() => null);
                             socketConnection = sharedSocket.makeConnection();
@@ -152,10 +154,10 @@ class _LandingPageState extends State<LandingPage> {
                         ),
                         TextFormField(
                           onChanged: (value) {
-                            newEndpoint = value;
+                            newUrl = value;
                           },
                           decoration: const InputDecoration(
-                            hintText: "Endpoint",
+                            hintText: "Url",
                           ),
                         ),
                       ],

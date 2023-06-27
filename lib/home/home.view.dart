@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:aws_mq_app/shared/app.shared.dart';
+import 'package:aws_mq_app/shared/errors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../service_stomp.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,174 +15,253 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String? errResult;
-  StompServices socket = StompServices();
-  final StreamController _somaStream = StreamController();
-  final StreamController _mensagemStream = StreamController();
-  final StreamController _arquivoStream = StreamController();
 
-  bool connected = false;
-  bool listening = false;
-  String topic = "messageInput";
+  final StreamController _varStream = StreamController();
+  int? lastHashStream;
+  late Function varStreamUnsub;
+  Map<String, dynamic> valoresStream = {};
+  List<String> phsRecebidos = [];
+  List<String> tempsRecebidos = [];
+
+  final StreamController _alertaStream = StreamController();
+  late Function alertaStreamUnsub;
 
   @override
   void initState() {
     super.initState();
-    // socket.stompClient.activate();
-    connected = true;
+    if (sharedSocket.stompClient.connected == true) {
+      if (sharedUser["uuid"] != "") {
+        varStreamUnsub = sharedSocket.subscribeToTopic(
+          '${sharedUser["equipamento"]}.var_stream',
+          _varStream,
+        );
+        alertaStreamUnsub = sharedSocket.subscribeToTopic(
+          '${sharedUser["equipamento"]}.alerta',
+          _alertaStream,
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
-    if (socket.stompClient.connected) {
-      socket.stompClient.deactivate();
-      if (kDebugMode) {
-        print("Disconnected");
-      }
-    }
+    varStreamUnsub();
+    alertaStreamUnsub();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Hidroponia"),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-            icon: const Icon(Icons.exit_to_app_rounded, size: 32),
-          )
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 30.0),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 48,
-          runSpacing: 48,
-          children: [
-            Hero(
-              tag: 'mainLogo',
-              child: Padding(
-                padding: const EdgeInsets.only(top: 24.0),
-                child: SizedBox.square(
-                  dimension: 200,
-                  child: Image.asset(
-                    'lib/assets/logoCutTransparent.png',
-                    fit: BoxFit.contain,
+    return StreamBuilder(
+        stream: _alertaStream.stream,
+        builder: (context, snapshot) {
+          // Trata erro da stream
+          if (snapshot.hasError) {
+            if (kDebugMode) {
+              print("Home snapshot error:");
+              print(snapshot.error);
+            }
+            Map<String, dynamic> streamError =
+                jsonDecode(snapshot.error as String);
+            if (streamError['err_id'] != null &&
+                streamError['err_desc'] != null) {
+              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                showDialog(
+                  context: context,
+                  builder: (context) => ErrorAlert(
+                    theError: MyErrors.fromJson(streamError),
                   ),
-                ),
-              ),
-            ),
-            //
-            // Dados que foram recebidos
-            //
-            Table(
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              children: [
-                const TableRow(
-                  children: [
-                    SizedBox(),
-                    Text(
-                      "Atual",
-                      textAlign: TextAlign.center,
+                );
+              });
+            }
+          }
+
+          if (snapshot.hasData) {
+            if (lastHashStream == null ||
+                snapshot.data.hashCode != lastHashStream) {
+              lastHashStream ??= snapshot.data.hashCode;
+              if (kDebugMode) {
+                print("Home snapshot data:");
+                print(snapshot.data);
+              }
+              WidgetsBinding.instance.addPostFrameCallback(
+                (timeStamp) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ErrorAlert(
+                      theError: MyErrors.fromJson(
+                        {
+                          "err_id": 5,
+                          "err_desc":
+                              "A variável ${snapshot.data.toString()} está fora do objetivo!",
+                        },
+                      ),
                     ),
-                    Text(
-                      "Objetivo",
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                TableRow(
-                  children: [
-                    ...dataReceivedWidgets(
-                      context,
-                      titulo: "pH 💧",
-                      streamAtual: "6.8",
-                      streamObjetivo: "7.0",
-                    ),
-                  ],
-                ),
-                TableRow(
-                  children: [
-                    ...dataReceivedWidgets(
-                      context,
-                      titulo: "Temp 🌡",
-                      streamAtual: "19",
-                      streamObjetivo: "20",
-                    ),
-                  ],
-                ),
-                TableRow(
-                  children: [
-                    ...dataReceivedWidgets(
-                      context,
-                      titulo: "Lumin 💡",
-                      streamAtual: "600",
-                      streamObjetivo: "600",
-                    ),
-                  ],
-                ),
+                  );
+                },
+              );
+            }
+          }
+
+          if (kDebugMode) {
+            print("-----Home-----");
+          }
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Hidroponia"),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  icon: const Icon(Icons.exit_to_app_rounded, size: 32),
+                )
               ],
             ),
-            //
-            // Mudar Objetivos
-            //
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/targets');
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(
-                          Theme.of(context).colorScheme.primary),
-                    ),
-                    child: Text(
-                      "Alterar dados Objetivos",
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/relatorio/request');
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(
-                          Theme.of(context).colorScheme.primary),
-                    ),
-                    child: Text(
-                      "Solicitar Relatório",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 48,
+                runSpacing: 48,
+                children: [
+                  Hero(
+                    tag: 'mainLogo',
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: SizedBox.square(
+                        dimension: 200,
+                        child: Image.asset(
+                          'lib/assets/logoCutTransparent.png',
+                          fit: BoxFit.contain,
+                          semanticLabel: "Logo Hidroponia",
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  //
+                  // Dados que foram recebidos
+                  //
+                  StreamBuilder(
+                      stream: _varStream.stream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          valoresStream = jsonDecode(snapshot.data);
+                          phsRecebidos =
+                              valoresStream["ph"].toString().split(" ");
+                          tempsRecebidos = valoresStream["temperatura"]
+                              .toString()
+                              .split(" ");
+                        } else {
+                          phsRecebidos = ["", ""];
+                          tempsRecebidos = ["", "", ""];
+                        }
+
+                        return Table(
+                          defaultVerticalAlignment:
+                              TableCellVerticalAlignment.middle,
+                          children: [
+                            const TableRow(
+                              children: [
+                                SizedBox(),
+                                Text(
+                                  "Atual",
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  "Objetivo",
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                            TableRow(
+                              children: [
+                                ...dataReceivedWidgets(context,
+                                    titulo: "pH 💧",
+                                    valorAtual: phsRecebidos[0],
+                                    valorObjetivo: phsRecebidos[1]),
+                              ],
+                            ),
+                            TableRow(
+                              children: [
+                                ...dataReceivedWidgets(context,
+                                    titulo: "Temp 🌡",
+                                    valorAtual: tempsRecebidos[0],
+                                    valorObjetivo:
+                                        "${tempsRecebidos[1]} ~ ${tempsRecebidos[1]}"),
+                              ],
+                            ),
+                            TableRow(
+                              children: [
+                                ...dataReceivedWidgets(context,
+                                    titulo: "Lumin 💡",
+                                    valorAtual:
+                                        valoresStream["luminosidade"] != null
+                                            ? valoresStream["luminosidade"]
+                                                .toString()
+                                            : "",
+                                    valorObjetivo: "-"),
+                              ],
+                            ),
+                          ],
+                        );
+                      }),
+                  //
+                  // Mudar Objetivos
+                  //
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/targets');
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll(
+                                Theme.of(context).colorScheme.primary),
+                          ),
+                          child: Text(
+                            "Alterar dados Objetivos",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/relatorio/request');
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll(
+                                Theme.of(context).colorScheme.primary),
+                          ),
+                          child: Text(
+                            "Solicitar Relatório",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 }
 
-// TODO: usar as streams
 List<Widget> dataReceivedWidgets(
   BuildContext context, {
   required String titulo,
-  required String streamAtual,
-  required streamObjetivo,
+  required String valorAtual,
+  required String valorObjetivo,
 }) {
   const double textSize = 18;
   return [
@@ -190,82 +271,28 @@ List<Widget> dataReceivedWidgets(
       textAlign: TextAlign.end,
     ),
     Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: Theme.of(context).colorScheme.secondary,
-      ),
-      // TODO: trocar para stream
-      child: Text(
-        streamAtual,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onSecondary,
-          fontSize: textSize,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          color: Theme.of(context).colorScheme.secondary,
         ),
-        textAlign: TextAlign.center,
-      ),
-    ),
-    // TODO: trocar para stream
+        //
+        child: Text(
+          valorAtual,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSecondary,
+            fontSize: textSize,
+          ),
+          textAlign: TextAlign.center,
+        )),
+    //
     Text(
-      streamObjetivo,
+      valorObjetivo,
       style: const TextStyle(
         fontSize: textSize,
       ),
       textAlign: TextAlign.center,
     ),
   ];
-}
-
-class ReceivedData extends StatelessWidget {
-  final String titulo;
-  final String streamAtual;
-  final String streamObjetivo;
-  final double spacing;
-
-  const ReceivedData({
-    super.key,
-    required this.titulo,
-    required this.streamAtual,
-    required this.streamObjetivo,
-    this.spacing = 8.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          titulo,
-          style: const TextStyle(fontSize: 24),
-        ),
-        SizedBox(width: spacing),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            color: Theme.of(context).colorScheme.secondary.withAlpha(128),
-          ),
-          // TODO: trocar para stream
-          child: Text(
-            streamAtual,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSecondary,
-              fontSize: 24,
-            ),
-          ),
-        ),
-        SizedBox(width: spacing),
-        // TODO: trocar para stream
-        Text(
-          streamObjetivo,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSecondary,
-            fontSize: 24,
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -6,6 +6,7 @@ Map<int, String> errorTitles = {
   2: "Sem dados",
   3: "Falha no login",
   4: "Falha no login",
+  5: "Alerta"
 };
 
 // // Exemplo de uso em um scaffold:

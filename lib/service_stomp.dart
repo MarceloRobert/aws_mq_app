@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
+import 'package:stomp_dart_client/stomp_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class StompServices {
@@ -15,11 +16,11 @@ class StompServices {
 
   StompClient stompClient = StompClient(
     config: StompConfig(
-      url: 'wss://$endpointAppCredential.amazonaws.com:61619',
+      url: urlAppCredential,
       onConnect: onConnectCallback,
       onDisconnect: onDisonnectCallback,
       // onDebugMessage: onDebugCallback,
-      onWebSocketError: onErrorCallback,
+      onWebSocketError: onWebSocketErrorCallback,
       onStompError: onErrorCallback,
       onUnhandledFrame: onErrorCallback,
       onUnhandledMessage: onErrorCallback,
@@ -49,27 +50,42 @@ class StompServices {
   Future connectDebug() {
     if (isConnected.isCompleted == true) {
       isConnected = Completer();
+    } else {
+      isConnected.complete();
     }
-    isConnected.complete();
     return isConnected.future;
   }
 
-  void subscribeToTopic(String topic, StreamController theStream) {
+  /// Se inscreve no tópico dado, os dados serão repassados para a stream.
+  /// Tópico como "nome" ou "nome/subtopico/..."
+  StompUnsubscribe subscribeToTopic(String topic, StreamController theStream) {
     if (kDebugMode) {
       print("Subscribing to $topic");
     }
-    stompClient.subscribe(
+    return stompClient.subscribe(
       destination: '/topic/$topic',
       callback: (message) {
         String decodedMessage = utf8.decoder.convert(message.binaryBody!);
         if (kDebugMode) {
           print("Received Message in topic $topic:\n$decodedMessage");
         }
-        theStream.add(decodedMessage);
+        // Se a resposta do servidor vier no formato de erro, adiciona erro
+        try {
+          if (jsonDecode(decodedMessage)["err_id"] != null) {
+            theStream.addError(decodedMessage);
+          } else {
+            theStream.add(decodedMessage);
+          }
+        } catch (e) {
+          theStream.add(decodedMessage); // no caso do alerta, virá apenas uma string
+        }
       },
     );
   }
 
+  /// Envia mensagem para o tópico.
+  /// Mensagem deve ser String.
+  /// Tópico como "nome" ou "nome/subtopico/..."
   void sendMessage(String message, String topic) {
     if (kDebugMode) {
       print("Sending to $topic");
@@ -80,18 +96,47 @@ class StompServices {
     );
   }
 
+  //
+  // Callbacks
+  //
+
   static void onConnectCallback(StompFrame connectFrame) {
     if (kDebugMode) {
       print('Connected');
     }
     if (connectFrame.body == null) {
-      isConnected.complete("connected");
+      if (isConnected.isCompleted == false) {
+        isConnected.complete("connected");
+      }
     }
   }
 
   static void onDisonnectCallback(StompFrame connectFrame) {
     if (kDebugMode) {
       print('Disconnected');
+    }
+  }
+
+  static void onDebugCallback(dynamic debugMessage) {
+    if (kDebugMode) {
+      print('STOMP debug: \n$debugMessage');
+    }
+  }
+
+  //
+  // Error callbacks
+  //
+
+  static void onWebSocketErrorCallback(dynamic error) {
+    if (error is WebSocketChannelException) {
+      if (kDebugMode) {
+        print('Error occurred: ${error.message}');
+      }
+      if (isConnected.isCompleted == false) {
+        isConnected.completeError(error.message!.split(":")[1]);
+      }
+    } else {
+      isConnected.completeError("Erro desconhecido");
     }
   }
 
@@ -105,12 +150,6 @@ class StompServices {
       }
     } else {
       isConnected.completeError("Erro desconhecido");
-    }
-  }
-
-  static void onDebugCallback(dynamic debugMessage) {
-    if (kDebugMode) {
-      print('STOMP debug: \n$debugMessage');
     }
   }
 }
