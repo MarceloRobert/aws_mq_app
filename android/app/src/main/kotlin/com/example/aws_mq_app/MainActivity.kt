@@ -1,4 +1,4 @@
-package com.example.aws_mq_app
+package com.example.hidroponia
 
 import io.flutter.embedding.android.FlutterActivity
 

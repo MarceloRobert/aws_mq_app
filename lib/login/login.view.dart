@@ -16,6 +16,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
+  int? lastDataHashStream;
+  int? lastErrorHashStream;
 
   Map<String, String> userCredentials = {
     "username": "",
@@ -62,51 +64,63 @@ class _LoginPageState extends State<LoginPage> {
         builder: (context, snapshot) {
           // Trata erro da stream
           if (snapshot.hasError) {
-            if (kDebugMode) {
-              print("Login snapshot error:");
-              print(snapshot.error);
+            if (lastErrorHashStream == null ||
+                lastErrorHashStream != snapshot.error.hashCode) {
+              lastErrorHashStream ??= snapshot.error.hashCode;
+              if (kDebugMode) {
+                print("Login snapshot error:");
+                print(snapshot.error);
+              }
+              loginReplyData = jsonDecode(snapshot.error as String);
+              if (loginReplyData['err_id'] != null &&
+                  loginReplyData['err_desc'] != null) {
+                WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ErrorAlert(
+                      theError: MyErrors.fromJson(loginReplyData),
+                    ),
+                  );
+                });
+              }
+              waitingReply = false;
             }
-            loginReplyData = jsonDecode(snapshot.error as String);
-            if (loginReplyData['err_id'] != null &&
-                loginReplyData['err_desc'] != null) {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                showDialog(
-                  context: context,
-                  builder: (context) => ErrorAlert(
-                    theError: MyErrors.fromJson(loginReplyData),
-                  ),
-                );
-              });
-            }
-            waitingReply = false;
           }
 
           // Trata respostas do login
           if (snapshot.hasData) {
-            if (kDebugMode) {
-              print("Login snapshot data:");
-              print(snapshot.data);
-            }
-            try {
-              loginReplyData = jsonDecode(snapshot.data);
-              if (loginReplyData['cli_id'] != null &&
-                  loginReplyData['equipamento'] != null &&
-                  loginReplyData['amb_id'] != null) {
-                sharedUser["cli_id"] = loginReplyData["cli_id"];
-                sharedUser["equipamento"] = loginReplyData["equipamento"];
-                sharedUser["amb_id"] = loginReplyData["amb_id"];
-                WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                  Navigator.pushReplacementNamed(context, '/home');
-                });
-              }
-              waitingReply = false;
-            } on Exception catch (e) {
+            if (lastDataHashStream == null ||
+                lastDataHashStream != snapshot.data.hashCode) {
+              lastDataHashStream ??= snapshot.data.hashCode;
               if (kDebugMode) {
-                print(e);
+                print("Login snapshot data:");
+                print(snapshot.data);
+              }
+              try {
+                loginReplyData = jsonDecode(snapshot.data);
+              } catch (e) {
+                if (kDebugMode) {
+                  print(e);
+                }
+              } finally {
+                if (loginReplyData['cli_id'] != null &&
+                    loginReplyData['equipamento'] != null &&
+                    loginReplyData['amb_id'] != null) {
+                  sharedUser["cli_id"] = loginReplyData["cli_id"];
+                  sharedUser["equipamento"] = loginReplyData["equipamento"];
+                  sharedUser["amb_id"] = loginReplyData["amb_id"];
+                  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  });
+                }
+                waitingReply = false;
               }
             }
           }
 
+          if (kDebugMode) {
+            print("-----Login-----");
+          }
           // Desenha a tela
           return Scaffold(
             body: SingleChildScrollView(

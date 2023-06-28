@@ -82,22 +82,29 @@ class _HomePageState extends State<HomePage> {
                 print("Home snapshot data:");
                 print(snapshot.data);
               }
-              WidgetsBinding.instance.addPostFrameCallback(
-                (timeStamp) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ErrorAlert(
-                      theError: MyErrors.fromJson(
-                        {
-                          "err_id": 5,
-                          "err_desc":
-                              "A variável ${snapshot.data.toString()} está fora do objetivo!",
-                        },
+              try {
+                Map dadosAlerta = jsonDecode(snapshot.data);
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (timeStamp) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ErrorAlert(
+                        theError: MyErrors.fromJson(
+                          {
+                            "err_id": 5,
+                            "err_desc":
+                                "A variável ${dadosAlerta["variavel"]} está fora do objetivo!",
+                          },
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
+                    );
+                  },
+                );
+              } catch (e) {
+                if (kDebugMode) {
+                  print(e);
+                }
+              }
             }
           }
 

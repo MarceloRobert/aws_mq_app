@@ -11,29 +11,23 @@ class RelatorioReplyPage extends StatefulWidget {
 }
 
 class _RelatorioReplyPageState extends State<RelatorioReplyPage> {
-  Map<String, dynamic> dadosPh = {};
-  Map<String, dynamic> dadosTemp = {};
-  Map<String, dynamic> dadosLum = {};
+  List dadosPh = [];
+  List dadosTemp = [];
+  List dadosLum = [];
 
   static const double textFontSize = 18;
 
   @override
   void initState() {
     super.initState();
-    if (widget.dadosView["media_ph"] != null) {
-      dadosPh["media"] = widget.dadosView["media_ph"];
-      dadosPh["minimo"] = widget.dadosView["minimo_ph"];
-      dadosPh["maximo"] = widget.dadosView["maximo_ph"];
+    if (widget.dadosView["phAtual"] != null) {
+      dadosPh = widget.dadosView["phAtual"];
     }
-    if (widget.dadosView["media_temperatura"] != null) {
-      dadosTemp["media"] = widget.dadosView["media_temperatura"];
-      dadosTemp["minimo"] = widget.dadosView["minimo_temperatura"];
-      dadosTemp["maximo"] = widget.dadosView["maximo_temperatura"];
+    if (widget.dadosView["tempAtual"] != null) {
+      dadosTemp = widget.dadosView["tempAtual"];
     }
-    if (widget.dadosView["media_luminosidade"] != null) {
-      dadosLum["media"] = widget.dadosView["media_luminosidade"];
-      dadosLum["minimo"] = widget.dadosView["minimo_luminosidade"];
-      dadosLum["maximo"] = widget.dadosView["maximo_luminosidade"];
+    if (widget.dadosView["lumAtual"] != null) {
+      dadosLum = widget.dadosView["lumAtual"];
     }
   }
 
@@ -67,34 +61,34 @@ class _RelatorioReplyPageState extends State<RelatorioReplyPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Text(
-                  "Relatório de dados para o intervalo entre ${widget.dadosView["hora_inicial"]} e ${widget.dadosView["hora_final"]}",
+                  "Relatório de dados para o intervalo entre ${widget.dadosView["hora_inicial"]} e ${widget.dadosView["hora_final"]} do dia ${widget.dadosView["data_ref"]}",
                   style: const TextStyle(
                     fontSize: 24,
                   ),
                 ),
               ),
             // Dados ph
-            if (dadosPh != {})
+            if (dadosPh != [])
               MyLineChart(
-                valueList: (dadosPh["media"] as List),
+                valueList: dadosPh,
                 textFontSize: textFontSize,
                 titulo: "Dados do pH:",
                 ymin: 0,
                 ymax: 14,
               ),
             // Dados temperatura
-            if (dadosTemp != {})
+            if (dadosTemp != [])
               MyLineChart(
-                valueList: dadosTemp["media"],
+                valueList: dadosTemp,
                 textFontSize: textFontSize,
                 titulo: "Dados da temperatura:",
-                ymin: 5,
-                ymax: 30,
+                ymin: 15,
+                ymax: 45,
               ),
             // Dados luminosidade
-            if (dadosLum != {})
+            if (dadosLum != [])
               MyLineChart(
-                valueList: dadosLum["media"],
+                valueList: dadosLum,
                 textFontSize: textFontSize,
                 titulo: "Dados da luminosidade:",
                 ymin: 0,

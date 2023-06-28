@@ -26,7 +26,7 @@ class MyErrors {
 
   /// Parse de json para classe. Json deve ser {'err_id', 'err_desc'}
   MyErrors.fromJson(Map<String, dynamic> theJson)
-      : errId = theJson["err_id"],
+      : errId = int.parse(theJson["err_id"].toString()),
         errDesc = theJson["err_desc"];
 
   /// Parse da classe para Json. Saída será {'err_id', 'err_desc'}

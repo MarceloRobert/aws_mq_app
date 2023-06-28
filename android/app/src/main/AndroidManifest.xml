@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.aws_mq_app">
+    package="com.example.hidroponia">
    <application
-        android:label="aws_mq_app"
+        android:label="hidroponia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

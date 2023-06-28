@@ -88,6 +88,20 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
           if (snapshot.hasData) {
             try {
               replyData = jsonDecode(snapshot.data);
+                if (kDebugMode) {
+                  print("Relatorio snapshot data:");
+                  print(replyData);
+                }
+                waitingReply = false;
+                replyData.addAll(relatorioRequestData);
+                WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RelatorioReplyPage(dadosView: replyData),
+                      ));
+                });
             } catch (e) {
               // recebe os dados para tirar da stream
               // ignore: unused_local_variable
@@ -96,23 +110,6 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                 print("Erro em Relatório Request:");
                 print(e);
               }
-            }
-            if (replyData["requester_id"] != null &&
-                replyData["requester_id"] == sharedUser["cli_id"]) {
-              if (kDebugMode) {
-                print("Relatorio snapshot data:");
-                print(replyData);
-              }
-              waitingReply = false;
-              replyData.addAll(relatorioRequestData);
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          RelatorioReplyPage(dadosView: replyData),
-                    ));
-              });
             }
           }
 
@@ -325,21 +322,24 @@ class _RelatorioRequestPageState extends State<RelatorioRequestPage> {
                                     relatorioRequestData["data_final"] =
                                         fieldFinalTemp;
                                   }
-                                  relatorioRequestData["requester_id"] =
+
+                                  relatorioRequestData["amb_id"] =
+                                      sharedUser["amb_id"];
+                                  relatorioRequestData["cli_id"] =
                                       sharedUser["cli_id"];
                                   if (kDebugMode) {
                                     print(relatorioRequestData.toString());
                                   }
-                                  // sharedSocket.sendMessage(
-                                  //     jsonEncode(relatorioRequestData),
-                                  //     "relatorio_request");
-                                  // waitingReply = true;
-                                  // ScaffoldMessenger.of(context).showSnackBar(
-                                  //   const SnackBar(
-                                  //     content: Text(
-                                  //         "Solicitando relatório. Permaneça na página"),
-                                  //   ),
-                                  // );
+                                  sharedSocket.sendMessage(
+                                      jsonEncode(relatorioRequestData),
+                                      "relatorio_request");
+                                  waitingReply = true;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          "Solicitando relatório. Permaneça na página"),
+                                    ),
+                                  );
                                   setState(() {});
                                 }
                               }

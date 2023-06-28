@@ -1,6 +1,6 @@
 {
-    "name": "aws_mq_app",
-    "short_name": "aws_mq_app",
+    "name": "hidroponia",
+    "short_name": "hidroponia",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
