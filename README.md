@@ -1,3 +1,64 @@
+### 🇺🇸 English
+
+# Hidroponic Garden Monitoring and Control Project
+
+## Summary
+- [Introduction](#introduction)
+- [Activity Diagram](#activity-diagram)
+- [Pages and Features](#pages-and-features)
+- [Run Requirements](#run-requirements)
+
+## Introduction
+
+This repository contains the code for a client that monitors and controls the variables of a hydroponic system using a message-based communication between client, an ESP8266 microcontroller and a Java server. The communication is made through an ActiveMQ instance implemented in AWS under AmazonMQ. The protocol used for the client-broker communication is `STOMP over websocket` from the `stomp_dart_client` library.
+
+This project was made with the help of [Flávio Augusto Aló Torres](<https://github.com/flavio055063>) and [Lucas Batista Pereira](<https://github.com/Perebati>) for the Distributed Systems subject, taught by [Rafael Frinhani](<https://www.linkedin.com/in/rafael-frinhani-20aa7b29/>) in 2023.
+
+
+## Activity Diagram
+
+Overall, the program execution can be observed by the following activity diagram (in Portuguese):
+
+![Activity Diagram](./screenshots/atividade%20flutter.png)
+
+In summary, the client is responsible for displaying the information that the microcontroller sends, displaying possible alerts when a variable is outside of the set limit, altering the variable limits, and requesting data reports that are stored in the backend.
+
+## Pages and Features
+
+The pages that the user can interact with are shown below.
+
+Firstly, the user is required to log in with their credentials, which should be registered beforehand in the database and tied to a specific microcontroller topic.
+
+![Login Page](./screenshots/login.png)
+
+After logging in, the user will be redirected to the main page where they can see the control variables and the target/limit for such variables.
+
+![Home Page](./screenshots/home.png)
+
+If some unexpected event happens in the variable control, the user will receive an alert inside the app informing about the problem. The layout of this alert is also used to inform other errors such as about login or connection.
+
+![Popup Alert](./screenshots/alerta.png)
+
+The control of the variable limits is done from another page, where the user can see the current limits, change them and also send an update request to both the microcontroller and the backend.
+
+![Control Page](./screenshots/objetivos.png)
+
+Also on the main page, the user can navigate to another page to request a data report, within a time frame also user-defined.
+
+![Report Request Page](./screenshots/relatorioRequestHoras.png)
+
+After requesting the report, the backend will compile the results and respond with the necessary data, where the client will format such data in a graph.
+
+![Report Display Page](./screenshots/relatorioReply.png)
+
+## Run Requirements
+
+To use this program it is required to update the dependencies through the `pub get` command. It's also required to have a `credentials.dart` file in the `lib` directory containing the variables `urlAppCredential, userAppCredential, passcodeAppCredential` for the connection with the AWS broker.
+
+
+<details>
+<summary>🇧🇷 Portuguese</summary>
+
 # Projeto de Monitoramento e Controle de Hidroponia
 
 ## Sumário
@@ -8,7 +69,7 @@
 
 ## Introdução
 
-Este repositório contém os códigos para um cliente que exibe e controla as variáveis de um sistema hidropônico utilizando uma comunicação por mensagens entre o cliente, um microcontrolador ESP8266 e um servidor Java. A comunicação é feita através de uma instância ActiveMQ implementada na AWS sob a AmazonMQ. O protocolo utilizado para a comunicação entre o cliente e o broker é STOMP over web socket da biblioteca stomp_dart_client.
+Este repositório contém os códigos para um cliente que exibe e controla as variáveis de um sistema hidropônico utilizando uma comunicação por mensagens entre o cliente, um microcontrolador ESP8266 e um servidor Java. A comunicação é feita através de uma instância ActiveMQ implementada na AWS sob a AmazonMQ. O protocolo utilizado para a comunicação entre o cliente e o broker é STOMP over websocket da biblioteca stomp_dart_client.
 
 Este projeto foi feito em conjunto com [Flávio Augusto Aló Torres](<https://github.com/flavio055063>) e [Lucas Batista Pereira](<https://github.com/Perebati>) para a disciplina Sistemas Distribuídos, ministrada por [Rafael Frinhani](<https://www.linkedin.com/in/rafael-frinhani-20aa7b29/>) em 2023.
 
@@ -53,4 +114,5 @@ Após a solicitação do relatório, o backend irá compilar os resultados e res
 
 ## Requisitos de funcionamento
 
-Para utilizar o programa é necessário atualizar as dependências através do comando ``pub get``, também é necessário que haja um arquivo ``credentials.dart`` no diretório ``lib`` contendo as variáveis ``urlAppCredential, userAppCredential, passcodeAppCredential`` para a conexão com o broker AWS.
+Para utilizar o programa é necessário atualizar as dependências através do comando `pub get`, também é necessário que haja um arquivo `credentials.dart` no diretório `lib` contendo as variáveis `urlAppCredential, userAppCredential, passcodeAppCredential` para a conexão com o broker AWS.
+</details>
